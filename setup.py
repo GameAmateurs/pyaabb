@@ -8,7 +8,9 @@ setup(
     description="AABB collision in python",
     license="MIT",
     install_requires=[
-        'numpy'
+        'numpy',
+        'pytest',
+        'matplotlib'
     ],
     packages=find_packages(),
     python_requires=">=3.8"

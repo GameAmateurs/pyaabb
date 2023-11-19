@@ -1,5 +1,6 @@
 import numpy as np
 
+
 def collisions(bboxes: np.array):
     """Identify all colliding bounding boxes in bboxes.
     
@@ -26,3 +27,53 @@ def collisions(bboxes: np.array):
     colls = np.transpose(np.nonzero(colliding))
     
     return colls
+
+X1, Y1, X2, Y2 = (0, 0), (0, 1), (1, 0), (1, 1)
+
+# TODO: make this vectorized, allowing many slides
+def slide(box1, box2, vx, vy):
+    """Resolve a collision between box1 and box2 with a 'slide' mechanic.
+    
+    A slide mechanic is one where the velocity perpendicular to the surfaces collision is evened out,
+    but the velocity parallel to the surface is not.
+    
+    Arguments:
+        box1: 2 x 2 array [[x1, y1], [x2, y2]] of the first (moving, sliding) box
+        box2: same for the second (static) box
+        vx, vy are the velocity of the first box
+        
+    Returns:
+        box1: position of box1 after collision is resolved
+        vx, vy: velocity of box1 after collision is resolved
+    """
+    box1 = np.array(box1)
+    box2 = np.array(box2)
+    # TODO: test the negative cases
+    # TODO: test and address the case where penetration is smaller in the colliding axis
+    # TODO: ensure good test coverage: need to test aox < aoy as
+    
+    if vx > 0:
+        ox = box2[X1] - box1[X2]
+    else:
+        ox = box2[X2] - box1[X1]
+    if vy > 0 :
+        oy = box2[Y1] - box1[Y2]
+    else:
+        oy = box2[Y2] - box1[Y1]
+
+    xintersect = ox / vx
+    yintersect = oy / vy
+    print(xintersect, yintersect)
+    if xintersect < yintersect:
+        # xaxis crossed before yaxis
+        # collision occurs on vertical boundary
+        return box1 + np.array([[0, oy]]), vx, 0
+    # collision occurs on horizontal boundary
+    return box1 + np.array([[ox, 0]]), 0, vy
+
+# for each object 
+# move fwd and find collisions
+# see how far to reverse for each coll
+# pick the max reverse one and yield it
+#   ask how to resolve
+#   

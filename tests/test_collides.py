@@ -14,3 +14,4 @@ def test_finds_overlapping_boxes():
     colls = pyaabb.collisions(boxes)
     assert np.allclose(
         colls, [[0, 1], [0, 2], [1, 2]])
+
