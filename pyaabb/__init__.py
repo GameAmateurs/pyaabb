@@ -51,7 +51,13 @@ def slide(box1, box2, vx, vy):
     # TODO: test the negative cases
     # TODO: test and address the case where penetration is smaller in the colliding axis
     # TODO: ensure good test coverage: need to test aox < aoy as
-    
+    if (vx, vy) == (0, 0):
+        ox = min(box2[X1] - box1[X2], box2[X2] - box1[X1])
+        oy = min(box2[Y1] - box1[Y2], box2[Y2] - box1[Y1])
+        
+        if np.abs(ox) < np.abs(oy):
+            return box1 + np.array([[ox, 0]]), 0, 0
+        return  box1 + np.array([[0, oy]]), 0, 0
     if vx > 0:
         ox = box2[X1] - box1[X2]
     else:
@@ -60,10 +66,15 @@ def slide(box1, box2, vx, vy):
         oy = box2[Y1] - box1[Y2]
     else:
         oy = box2[Y2] - box1[Y1]
+    if vx == 0:
+        xintersect = -1e90
+    else:
+        xintersect = ox / vx
+    if vy == 0:
+        yintersect = -1e90
+    else:
+        yintersect = oy / vy
 
-    xintersect = ox / vx
-    yintersect = oy / vy
-    print(xintersect, yintersect)
     if xintersect < yintersect:
         # xaxis crossed before yaxis
         # collision occurs on vertical boundary
