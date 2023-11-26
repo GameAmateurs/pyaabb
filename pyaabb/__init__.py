@@ -58,6 +58,7 @@ def slide(box1, box2, vx, vy):
         if np.abs(ox) < np.abs(oy):
             return box1 + np.array([[ox, 0]]), 0, 0
         return  box1 + np.array([[0, oy]]), 0, 0
+    import pdb; pdb.set_trace()
     if vx > 0:
         ox = box2[X1] - box1[X2]
     else:
@@ -66,11 +67,17 @@ def slide(box1, box2, vx, vy):
         oy = box2[Y1] - box1[Y2]
     else:
         oy = box2[Y2] - box1[Y1]
-    if vx == 0:
+        
+    if ox == 0:
+        xintersect = 0
+    elif vx == 0:
         xintersect = -1e90
     else:
         xintersect = ox / vx
-    if vy == 0:
+        
+    if oy == 0:
+        yintersect = 0
+    elif vy == 0:
         yintersect = -1e90
     else:
         yintersect = oy / vy

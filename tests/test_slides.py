@@ -43,6 +43,15 @@ def test_one_vel_zero():
     assert vy == 0
 
 
+def test_exact_contact_norm_vel_0():
+    box1 = np.array([[0, 0], [1, 1]])
+    box2 = np.array([[1, 0], [2, 1]])
+    vx, vy = 0, 1
+    box1_after, evx, evy = pyaabb.slide(box1, box2, vx, vy)
+    assert np.allclose(box1, box1_after)
+    assert vx == evx
+    assert vy == evy
+
     
 def test_vel_0():
     box1 = np.array([[0, 0], [1., 1.]])
