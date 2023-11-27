@@ -55,7 +55,7 @@ def test_exact_contact_norm_vel_0():
     
 def test_vel_0():
     box1 = np.array([[0, 0], [1., 1.]])
-    box2 = np.array([[0.6, 0.5], [1.4, 1.5]])
+    box2 = np.array([[0.6, 0.5], [1.6, 1.5]])
 
     plot_situation(box1, box2, 0, 0)
     plt.savefig(Path(__file__).parent / "test_slide_vel0.png")
@@ -67,6 +67,10 @@ def test_vel_0():
     assert np.allclose(newbox1, [[-0.4, 0], [0.6, 1]])
     assert newvx == 0
     assert newvy == 0
+
+    newbox2, newvx, newvy = pyaabb.slide(box2, box1, 0, 0)
+    assert np.allclose(newbox2, [[1, 0.5], [2, 1.5]])
+    
     
     
 def test_slide_in_y():

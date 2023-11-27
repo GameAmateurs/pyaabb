@@ -48,17 +48,26 @@ def slide(box1, box2, vx, vy):
     """
     box1 = np.array(box1)
     box2 = np.array(box2)
-    # TODO: test the negative cases
-    # TODO: test and address the case where penetration is smaller in the colliding axis
-    # TODO: ensure good test coverage: need to test aox < aoy as
+
     if (vx, vy) == (0, 0):
-        ox = min(box2[X1] - box1[X2], box2[X2] - box1[X1])
-        oy = min(box2[Y1] - box1[Y2], box2[Y2] - box1[Y1])
-        
+        ox1, ox2 = box2[X1] - box1[X2], box2[X2] - box1[X1]
+        # TODO: this may be a lot more concise if we vectorize this
+        #   using np.argmin...
+        if np.abs(ox1) < np.abs(ox2):
+            ox = ox1
+        else:
+            ox = ox2
+
+        oy1, oy2 = box2[Y1] - box1[Y2], box2[Y2] - box1[Y1]
+        if np.abs(oy1) < np.abs(oy2):
+            oy = oy1
+        else:
+            oy = oy2
+
         if np.abs(ox) < np.abs(oy):
             return box1 + np.array([[ox, 0]]), 0, 0
         return  box1 + np.array([[0, oy]]), 0, 0
-    import pdb; pdb.set_trace()
+
     if vx > 0:
         ox = box2[X1] - box1[X2]
     else:
