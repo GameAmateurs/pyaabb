@@ -20,8 +20,8 @@ def collisions(bboxes: np.array):
     set1 = bboxes[:, np.newaxis]
     set2 = bboxes[np.newaxis]
     colliding = (
-        (set1[:, :, 0] <= set2[:, :, 1]).all(axis=-1)
-        & (set1[:, :, 1] >= set2[:, :, 0]).all(axis=-1)
+        (set1[:, :, 0] < set2[:, :, 1]).all(axis=-1)
+        & (set1[:, :, 1] > set2[:, :, 0]).all(axis=-1)
     )
     colliding[np.tril_indices(colliding.shape[0])] = False
     colls = np.transpose(np.nonzero(colliding))
