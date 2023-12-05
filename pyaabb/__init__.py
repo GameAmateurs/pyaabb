@@ -29,9 +29,30 @@ def collisions(bboxes: np.array):
 
     return colls
 
+
 X1, Y1, X2, Y2 = (0, 0), (0, 1), (1, 0), (1, 1)
 
-# TODO: make this vectorized, allowing many slides
+
+def _pop_out_minimum_direction(box1, box2):
+    """Move box1 minimum necessary to not overlap box2."""
+    ox1, ox2 = box2[X1] - box1[X2], box2[X2] - box1[X1]
+
+    if np.abs(ox1) < np.abs(ox2):
+        ox = ox1
+    else:
+        ox = ox2
+
+    oy1, oy2 = box2[Y1] - box1[Y2], box2[Y2] - box1[Y1]
+    if np.abs(oy1) < np.abs(oy2):
+        oy = oy1
+    else:
+        oy = oy2
+
+    if np.abs(ox) < np.abs(oy):
+        return box1 + np.array([[ox, 0]]), 0, 0
+    return box1 + np.array([[0, oy]]), 0, 0
+
+
 def slide(box1, box2, vx, vy):
     """Resolve a collision between box1 and box2 with a 'slide' mechanic.
 
@@ -51,29 +72,13 @@ def slide(box1, box2, vx, vy):
     box2 = np.array(box2)
 
     if (vx, vy) == (0, 0):
-        ox1, ox2 = box2[X1] - box1[X2], box2[X2] - box1[X1]
-        # TODO: this may be a lot more concise if we vectorize this
-        #   using np.argmin...
-        if np.abs(ox1) < np.abs(ox2):
-            ox = ox1
-        else:
-            ox = ox2
-
-        oy1, oy2 = box2[Y1] - box1[Y2], box2[Y2] - box1[Y1]
-        if np.abs(oy1) < np.abs(oy2):
-            oy = oy1
-        else:
-            oy = oy2
-
-        if np.abs(ox) < np.abs(oy):
-            return box1 + np.array([[ox, 0]]), 0, 0
-        return  box1 + np.array([[0, oy]]), 0, 0
+        return _pop_out_minimum_direction(box1, box2)
 
     if vx > 0:
         ox = box2[X1] - box1[X2]
     else:
         ox = box2[X2] - box1[X1]
-    if vy > 0 :
+    if vy > 0:
         oy = box2[Y1] - box1[Y2]
     else:
         oy = box2[Y2] - box1[Y1]
