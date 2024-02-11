@@ -13,44 +13,33 @@ def collisions(bboxes: np.array):
            x2 y2 the top right
 
     Returns:
-        m by 2 array of collisions, where the elements are the indices of the 
+        m by 2 array of collisions, where the elements are the indices of the
         colliding bboxes
     """
     # inefficient: can be improved to avoid comparisons
     #   between self and inverse collisions
     set1 = bboxes[:, np.newaxis]
     set2 = bboxes[np.newaxis]
-    colliding = (
-        (set1[:, :, 0] < set2[:, :, 1]).all(axis=-1)
-        & (set1[:, :, 1] > set2[:, :, 0]).all(axis=-1)
-    )
+    colliding = _identify_overlapping(set1, set2)
     colliding[np.tril_indices(colliding.shape[0])] = False
     colls = np.transpose(np.nonzero(colliding))
-
     return colls
 
 
+def _identify_overlapping(set1, set2):
+    # corners of bounding boxes
+    lowerleft1 = set1[:, :, 0]
+    lowerleft2 = set2[:, :, 0]
+    upperright1 = set1[:, :, 1]
+    upperright2 = set2[:, :, 1]
+
+    overlap1 = (lowerleft1 < upperright2).all(axis=-1)
+    overlap2 = (upperright1 > lowerleft2).all(axis=-1)
+
+    return overlap1 & overlap2
+
+
 X1, Y1, X2, Y2 = (0, 0), (0, 1), (1, 0), (1, 1)
-
-
-def _pop_out_minimum_direction(box1, box2):
-    """Move box1 minimum necessary to not overlap box2."""
-    ox1, ox2 = box2[X1] - box1[X2], box2[X2] - box1[X1]
-
-    if np.abs(ox1) < np.abs(ox2):
-        ox = ox1
-    else:
-        ox = ox2
-
-    oy1, oy2 = box2[Y1] - box1[Y2], box2[Y2] - box1[Y1]
-    if np.abs(oy1) < np.abs(oy2):
-        oy = oy1
-    else:
-        oy = oy2
-
-    if np.abs(ox) < np.abs(oy):
-        return box1 + np.array([[ox, 0]]), 0, 0
-    return box1 + np.array([[0, oy]]), 0, 0
 
 
 def slide(box1, box2, vx, vy):
@@ -74,6 +63,30 @@ def slide(box1, box2, vx, vy):
     if (vx, vy) == (0, 0):
         return _pop_out_minimum_direction(box1, box2)
 
+    ox, oy = _find_overlap_in_direction_of_movement(box1, box2, vx, vy)
+
+    time_since_x_intersect = _find_intersection_time(ox, vx)
+    time_since_y_intersect = _find_intersection_time(oy, vy)
+
+    if time_since_x_intersect < time_since_y_intersect:
+        return box1 + np.array([[0, oy]]), vx, 0
+    return box1 + np.array([[ox, 0]]), 0, vy
+
+
+HUGE = 1e90
+
+
+def _find_intersection_time(overlap, velocity):
+    if overlap == 0:
+        intersect_time = 0
+    elif velocity == 0:
+        intersect_time = -HUGE
+    else:
+        intersect_time = overlap / velocity
+    return intersect_time
+
+
+def _find_overlap_in_direction_of_movement(box1, box2, vx, vy):
     if vx > 0:
         ox = box2[X1] - box1[X2]
     else:
@@ -82,24 +95,24 @@ def slide(box1, box2, vx, vy):
         oy = box2[Y1] - box1[Y2]
     else:
         oy = box2[Y2] - box1[Y1]
+    return ox, oy
 
-    if ox == 0:
-        xintersect = 0
-    elif vx == 0:
-        xintersect = -1e90
+
+def _pop_out_minimum_direction(box1, box2):
+    """Move box1 minimum necessary to not overlap box2."""
+    ox1, ox2 = box2[X1] - box1[X2], box2[X2] - box1[X1]
+
+    if np.abs(ox1) < np.abs(ox2):
+        ox = ox1
     else:
-        xintersect = ox / vx
+        ox = ox2
 
-    if oy == 0:
-        yintersect = 0
-    elif vy == 0:
-        yintersect = -1e90
+    oy1, oy2 = box2[Y1] - box1[Y2], box2[Y2] - box1[Y1]
+    if np.abs(oy1) < np.abs(oy2):
+        oy = oy1
     else:
-        yintersect = oy / vy
+        oy = oy2
 
-    if xintersect < yintersect:
-        # xaxis crossed before yaxis
-        # collision occurs on vertical boundary
-        return box1 + np.array([[0, oy]]), vx, 0
-    # collision occurs on horizontal boundary
-    return box1 + np.array([[ox, 0]]), 0, vy
+    if np.abs(ox) < np.abs(oy):
+        return box1 + np.array([[ox, 0]]), 0, 0
+    return box1 + np.array([[0, oy]]), 0, 0
