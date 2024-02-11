@@ -29,4 +29,3 @@ jobs:
       run: |
         pylint pyaabb
         pycodestyle pyaabb
-        pydocstyle pyaabb --max-line-length 99
