@@ -5,7 +5,7 @@ import numpy as np
 def collisions(bboxes: np.array):
     """Identify all colliding bounding boxes in bboxes.
 
-    Two bounding boxes are colliding if they overlap or their sides are in contact.
+    Two bounding boxes are colliding if they are in contact.
 
     Arguments:
         bboxes: n x 2 x 2 array where n is the number of bounding boxes,
@@ -13,8 +13,8 @@ def collisions(bboxes: np.array):
            x2 y2 the top right
 
     Returns:
-        m by 2 array of collisions, where the elements are the indices of the colliding
-        bboxes
+        m by 2 array of collisions, where the elements are the indices of the 
+        colliding bboxes
     """
     # inefficient: can be improved to avoid comparisons
     #   between self and inverse collisions
@@ -60,7 +60,7 @@ def slide(box1, box2, vx, vy):
     collision is set to 0, and the velocity parallel to the surface is not.
 
     Arguments:
-        box1: 2 x 2 array [[x1, y1], [x2, y2]] of the first (moving, sliding) box
+        box1: 2 x 2 array [[x1, y1], [x2, y2]] of the first box
         box2: same for the second (static) box
         vx, vy are the velocity of the first box
 
