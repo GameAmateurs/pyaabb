@@ -2,7 +2,7 @@
 import numpy as np
 
 
-def collisions(bboxes: np.array):
+def collisions(bboxes: np.array, bbox: np.array=None):
     """Identify all colliding bounding boxes in bboxes.
 
     Two bounding boxes are colliding if they are in contact.
@@ -11,9 +11,12 @@ def collisions(bboxes: np.array):
         bboxes: n x 2 x 2 array where n is the number of bounding boxes,
            [[[x1, y1], [x2, y2]]] where x1, y1 is the bottom left corner,
            x2 y2 the top right
+        bbox (optional): A single bounding box to intersect with all the others.
+           If ommitted, simply check intersections between all bounding boxes.
 
     Returns:
-        m by 2 array of collisions, where the elements are the indices of the
+        if bbox is provided, an array of the indices of the bboxes that collide with bbox.
+        else an m by 2 array of collisions, where the elements are the indices of the
         colliding bboxes
     """
     # inefficient: can be improved to avoid comparisons
@@ -72,6 +75,18 @@ def slide(box1, box2, vx, vy):
         return box1 + np.array([[0, oy]]), vx, 0
     return box1 + np.array([[ox, 0]]), 0, vy
 
+
+def time_to_collisions(boxes, collisions, relative_velocities):
+    out = []
+    for coll, velocity in zip(collisions, relative_velocities):
+        box1 = boxes[coll[0]]
+        box2 = boxes[coll[1]]
+        ox, oy = _find_overlap_in_direction_of_movement(box1, box2, *velocity)
+
+        time_since_x_intersect = _find_intersection_time(ox, velocity[0])
+        time_since_y_intersect = _find_intersection_time(oy, velocity[0])
+        out.append(min(time_since_x_intersect, time_since_y_intersect))
+    return np.array(out)
 
 HUGE = 1e90
 

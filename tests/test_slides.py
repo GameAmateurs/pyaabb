@@ -62,7 +62,6 @@ def test_vel_0():
     assert np.allclose(newbox2, [[1, 0.5], [2, 1.5]])
     
     
-    
 def test_slide_in_y():
     box1 = np.array([[0., 0.], [1., 1.]])
     v = np.array([1, 0.25])
