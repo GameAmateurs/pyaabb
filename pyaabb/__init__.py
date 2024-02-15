@@ -2,29 +2,33 @@
 import numpy as np
 
 
-def collisions(bboxes: np.array, bbox: np.array=None):
+def collisions(bboxes1: np.array, bboxes2: np.array=None):
     """Identify all colliding bounding boxes in bboxes.
 
     Two bounding boxes are colliding if they are in contact.
 
     Arguments:
-        bboxes: n x 2 x 2 array where n is the number of bounding boxes,
+        bboxes1: n x 2 x 2 array where n is the number of bounding boxes,
            [[[x1, y1], [x2, y2]]] where x1, y1 is the bottom left corner,
            x2 y2 the top right
-        bbox (optional): A single bounding box to intersect with all the others.
-           If ommitted, simply check intersections between all bounding boxes.
+        bboxes2: a second set of bboxes. If supplied, only collisions between
+           bboxes1 and bboxes2 are checked.
+           otherwise, collisions are checked between all boxes in bboxes1
 
     Returns:
-        if bbox is provided, an array of the indices of the bboxes that collide with bbox.
-        else an m by 2 array of collisions, where the elements are the indices of the
+        an m by 2 array of collisions, where the elements are the indices of the
         colliding bboxes
     """
     # inefficient: can be improved to avoid comparisons
     #   between self and inverse collisions
-    set1 = bboxes[:, np.newaxis]
-    set2 = bboxes[np.newaxis]
+    set1 = bboxes1[:, np.newaxis]
+    if bboxes2 is None:
+        set2 = bboxes1[np.newaxis]
+    else:
+        set2 = bboxes2[np.newaxis]
     colliding = _identify_overlapping(set1, set2)
-    colliding[np.tril_indices(colliding.shape[0])] = False
+    if bboxes2 is None:
+        colliding[np.tril_indices(colliding.shape[0])] = False
     colls = np.transpose(np.nonzero(colliding))
     return colls
 
