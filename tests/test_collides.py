@@ -41,8 +41,8 @@ def test_time_to_collisions():
         [[1.5, 0], [2, 1]]
     ])
     collision_times = pyaabb.time_to_collisions(
-        boxes,
-        [[0, 1], [0, 2]],
+        boxes[[0, 0]],
+        boxes[[1, 2]],
         rel_v
     )
     assert np.allclose(

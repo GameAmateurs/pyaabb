@@ -1,6 +1,7 @@
 """Axis-aligned bounding box libarary."""
 import numpy as np
 
+SMALL = 0.001
 
 def collisions(bboxes1: np.array, bboxes2: np.array=None):
     """Identify all colliding bounding boxes in bboxes.
@@ -40,8 +41,8 @@ def _identify_overlapping(set1, set2):
     upperright1 = set1[:, :, 1]
     upperright2 = set2[:, :, 1]
 
-    overlap1 = (lowerleft1 < upperright2).all(axis=-1)
-    overlap2 = (upperright1 > lowerleft2).all(axis=-1)
+    overlap1 = (lowerleft1 + SMALL < upperright2).all(axis=-1)
+    overlap2 = (upperright1 > lowerleft2 + SMALL).all(axis=-1)
 
     return overlap1 & overlap2
 
@@ -80,11 +81,9 @@ def slide(box1, box2, vx, vy):
     return box1 + np.array([[ox, 0]]), 0, vy
 
 
-def time_to_collisions(boxes, collisions, relative_velocities):
+def time_to_collisions(boxes1, boxes2, relative_velocities):
     out = []
-    for coll, velocity in zip(collisions, relative_velocities):
-        box1 = boxes[coll[0]]
-        box2 = boxes[coll[1]]
+    for box1, box2, velocity in zip(boxes1, boxes2, relative_velocities):
         ox, oy = _find_overlap_in_direction_of_movement(box1, box2, *velocity)
 
         time_since_x_intersect = _find_intersection_time(ox, velocity[0])
