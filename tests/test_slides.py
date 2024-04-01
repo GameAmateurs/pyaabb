@@ -30,6 +30,7 @@ def plot_situation(box1, box2, vx, vy):
     plt.arrow(*(box1[0] - np.array([vx, vy])), vx, vy)
     
     a.set_aspect('equal', adjustable='box')
+    return f, a
 
 
 def test_one_vel_zero():
@@ -112,6 +113,7 @@ def test_slide_neg_x():
     
     assert np.allclose(newbox1, [[1., 0.25], [2, 1.25]])
     assert np.allclose([newvx, newvy], [0, -0.25])
+
     
 
 # TODO: test velocity 0
