@@ -67,7 +67,8 @@ def slide(box1, box2, vx, vy):
     """
     box1 = np.array(box1)
     box2 = np.array(box2)
-
+    if len(collisions(box1[np.newaxis], box2[np.newaxis])) == 0:
+        return box1, vx, vy
     if (vx, vy) == (0, 0):
         return _pop_out_minimum_direction(box1, box2)
 
@@ -77,8 +78,12 @@ def slide(box1, box2, vx, vy):
     time_since_y_intersect = _find_intersection_time(oy, vy)
 
     if time_since_x_intersect < time_since_y_intersect:
-        return box1 + np.array([[0, oy]]), vx, 0
-    return box1 + np.array([[ox, 0]]), 0, vy
+        newbox = box1 + np.array([[0, oy]])
+        assert len(collisions(newbox[np.newaxis], box2[np.newaxis])) == 0, f"{box1}, {box2}, {vx}, {vy}"
+        return newbox, vx, 0
+    newbox = box1 + np.array([[ox, 0]])
+    assert len(collisions(newbox[np.newaxis], box2[np.newaxis])) == 0, f"{box1}, {box2}, {vx}, {vy}"
+    return newbox, 0, vy
 
 
 def time_to_collisions(boxes1, boxes2, relative_velocities):

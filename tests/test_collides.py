@@ -48,3 +48,11 @@ def test_time_to_collisions():
     assert np.allclose(
         collision_times, [-0.5, -0.1]
     )
+
+
+def test_overlap_not_collision():
+    collisions = pyaabb.collisions(
+        np.array([[0, 0], [1, 1]]), np.array([[0, 1], [1, 2]])
+    )
+    assert len(collisions) == 0
+    

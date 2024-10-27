@@ -115,5 +115,30 @@ def test_slide_neg_x():
     assert np.allclose([newvx, newvy], [0, -0.25])
 
     
-
+def test_slides_tiny_difference():
+    
+    box1 = np.array([[448.,     237.7183], [480.,      287.71835]])
+    box2 = np.array([[448,  205.85869507], [480,  237.85869507]])
+    vel = [ 0.,       -8.405502]
+    plot_situation(box1, box2, *vel)
+    plt.savefig(Path(__file__).parent / "test_slide_tiny_difference.png")
+    
+    newbox, vx, vy = pyaabb.slide(np.array(box1), np.array(box2), *vel)
+    plot_situation(newbox, box2, vx, vy)
+    plt.savefig(Path(__file__).parent / "test_slide_tiny_difference_after.png")
+    assert newbox[0, 1] == box2[1][1]
+    assert len(pyaabb.collisions(np.array([newbox]), np.array([box2]))) == 0
 # TODO: test velocity 0
+
+
+def test_issue_4():
+    box1 = np.array(
+        [[320.,        6.628101],
+        [351.99988,  39.628345]])
+    box2 = np.array(
+        [[320.,   0.],
+         [352.,  32.]])
+    vx, vy = 0.0, -16.875427001650678
+    plot_situation(box1, box2, vx, vy)
+    plt.savefig(Path(__file__).parent / "test_issue_4.png")
+    pyaabb.slide(box1, box2, vx, vy)
