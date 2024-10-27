@@ -1,27 +1,35 @@
 """Axis-aligned bounding box libarary."""
 import numpy as np
 
+SMALL = 0.001
 
-def collisions(bboxes: np.array):
+def collisions(bboxes1: np.array, bboxes2: np.array=None):
     """Identify all colliding bounding boxes in bboxes.
 
     Two bounding boxes are colliding if they are in contact.
 
     Arguments:
-        bboxes: n x 2 x 2 array where n is the number of bounding boxes,
+        bboxes1: n x 2 x 2 array where n is the number of bounding boxes,
            [[[x1, y1], [x2, y2]]] where x1, y1 is the bottom left corner,
            x2 y2 the top right
+        bboxes2: a second set of bboxes. If supplied, only collisions between
+           bboxes1 and bboxes2 are checked.
+           otherwise, collisions are checked between all boxes in bboxes1
 
     Returns:
-        m by 2 array of collisions, where the elements are the indices of the
+        an m by 2 array of collisions, where the elements are the indices of the
         colliding bboxes
     """
     # inefficient: can be improved to avoid comparisons
     #   between self and inverse collisions
-    set1 = bboxes[:, np.newaxis]
-    set2 = bboxes[np.newaxis]
+    set1 = bboxes1[:, np.newaxis]
+    if bboxes2 is None:
+        set2 = bboxes1[np.newaxis]
+    else:
+        set2 = bboxes2[np.newaxis]
     colliding = _identify_overlapping(set1, set2)
-    colliding[np.tril_indices(colliding.shape[0])] = False
+    if bboxes2 is None:
+        colliding[np.tril_indices(colliding.shape[0])] = False
     colls = np.transpose(np.nonzero(colliding))
     return colls
 
@@ -33,8 +41,8 @@ def _identify_overlapping(set1, set2):
     upperright1 = set1[:, :, 1]
     upperright2 = set2[:, :, 1]
 
-    overlap1 = (lowerleft1 < upperright2).all(axis=-1)
-    overlap2 = (upperright1 > lowerleft2).all(axis=-1)
+    overlap1 = (lowerleft1 + SMALL < upperright2).all(axis=-1)
+    overlap2 = (upperright1 > lowerleft2 + SMALL).all(axis=-1)
 
     return overlap1 & overlap2
 
@@ -59,7 +67,8 @@ def slide(box1, box2, vx, vy):
     """
     box1 = np.array(box1)
     box2 = np.array(box2)
-
+    if len(collisions(box1[np.newaxis], box2[np.newaxis])) == 0:
+        return box1, vx, vy
     if (vx, vy) == (0, 0):
         return _pop_out_minimum_direction(box1, box2)
 
@@ -69,9 +78,23 @@ def slide(box1, box2, vx, vy):
     time_since_y_intersect = _find_intersection_time(oy, vy)
 
     if time_since_x_intersect < time_since_y_intersect:
-        return box1 + np.array([[0, oy]]), vx, 0
-    return box1 + np.array([[ox, 0]]), 0, vy
+        newbox = box1 + np.array([[0, oy]])
+        assert len(collisions(newbox[np.newaxis], box2[np.newaxis])) == 0, f"{box1}, {box2}, {vx}, {vy}"
+        return newbox, vx, 0
+    newbox = box1 + np.array([[ox, 0]])
+    assert len(collisions(newbox[np.newaxis], box2[np.newaxis])) == 0, f"{box1}, {box2}, {vx}, {vy}"
+    return newbox, 0, vy
 
+
+def time_to_collisions(boxes1, boxes2, relative_velocities):
+    out = []
+    for box1, box2, velocity in zip(boxes1, boxes2, relative_velocities):
+        ox, oy = _find_overlap_in_direction_of_movement(box1, box2, *velocity)
+
+        time_since_x_intersect = _find_intersection_time(ox, velocity[0])
+        time_since_y_intersect = _find_intersection_time(oy, velocity[0])
+        out.append(min(time_since_x_intersect, time_since_y_intersect))
+    return np.array(out)
 
 HUGE = 1e90
 
