@@ -30,6 +30,7 @@ def plot_situation(box1, box2, vx, vy):
     plt.arrow(*(box1[0] - np.array([vx, vy])), vx, vy)
     
     a.set_aspect('equal', adjustable='box')
+    return f, a
 
 
 def test_one_vel_zero():
@@ -60,7 +61,6 @@ def test_vel_0():
 
     newbox2, newvx, newvy = pyaabb.slide(box2, box1, 0, 0)
     assert np.allclose(newbox2, [[1, 0.5], [2, 1.5]])
-    
     
     
 def test_slide_in_y():
@@ -113,6 +113,32 @@ def test_slide_neg_x():
     
     assert np.allclose(newbox1, [[1., 0.25], [2, 1.25]])
     assert np.allclose([newvx, newvy], [0, -0.25])
-    
 
+    
+def test_slides_tiny_difference():
+    
+    box1 = np.array([[448.,     237.7183], [480.,      287.71835]])
+    box2 = np.array([[448,  205.85869507], [480,  237.85869507]])
+    vel = [ 0.,       -8.405502]
+    plot_situation(box1, box2, *vel)
+    plt.savefig(Path(__file__).parent / "test_slide_tiny_difference.png")
+    
+    newbox, vx, vy = pyaabb.slide(np.array(box1), np.array(box2), *vel)
+    plot_situation(newbox, box2, vx, vy)
+    plt.savefig(Path(__file__).parent / "test_slide_tiny_difference_after.png")
+    assert newbox[0, 1] == box2[1][1]
+    assert len(pyaabb.collisions(np.array([newbox]), np.array([box2]))) == 0
 # TODO: test velocity 0
+
+
+def test_issue_4():
+    box1 = np.array(
+        [[320.,        6.628101],
+        [351.99988,  39.628345]])
+    box2 = np.array(
+        [[320.,   0.],
+         [352.,  32.]])
+    vx, vy = 0.0, -16.875427001650678
+    plot_situation(box1, box2, vx, vy)
+    plt.savefig(Path(__file__).parent / "test_issue_4.png")
+    pyaabb.slide(box1, box2, vx, vy)
