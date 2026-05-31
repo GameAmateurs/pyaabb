@@ -34,7 +34,7 @@ def plot_situation(box1, box2, vx, vy):
 
 
 def test_one_vel_zero():
-    box1 = np.array([[0, 1], [1, 2]])
+    box1 = np.array([[0, 0.9], [1, 1.9]])
     box2 = np.array([[0, 0], [1, 1]])
     vx, vy = [0, -1]
     
